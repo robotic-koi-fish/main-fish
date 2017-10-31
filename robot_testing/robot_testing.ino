@@ -53,15 +53,15 @@ void setup() { // ----------S----------S----------S----------S----------S-------
 void loop() { // ----------L----------L----------L----------L----------L----------L----------L----------L----------L
 
 
-  // Wait for XBee verification to start tests
-  XBee.write("TST: Send 'y' to begin testing phase");
-  while (true) {
-    if (XBee.available() && XBee.read() == 121) {
-        #ifdef PRINT
-        Serial.println("MSG: Starting tests");
-        #endif
-    }
-  }
+//  // Wait for XBee verification to start tests
+//  XBee.write("TST: Send 'y' to begin testing phase");
+//  while (true) {
+//    if (XBee.available() && XBee.read() == 121) {
+//        #ifdef PRINT
+//        Serial.println("MSG: Starting tests");
+//        #endif
+//    }
+//  }
   
 
   

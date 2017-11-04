@@ -32,8 +32,6 @@ byte pitch_limits[] = {21, 165};  //Servo limits 21, 165
 Servo servo_yaw;
 Servo servo_pitch;
 
-SoftwareSerial XBee(2, 3); // RX, TX
-
 
 void setup() { // ----------S----------S----------S----------S----------S----------S----------S----------S----------S
 
@@ -47,21 +45,28 @@ void setup() { // ----------S----------S----------S----------S----------S-------
 
   // Open serial comms
   Serial.begin(9600);
-  XBee.begin(9600);
 }
 
 void loop() { // ----------L----------L----------L----------L----------L----------L----------L----------L----------L
 
 
-//  // Wait for XBee verification to start tests
-//  XBee.write("TST: Send 'y' to begin testing phase");
-//  while (true) {
-//    if (XBee.available() && XBee.read() == 121) {
-//        #ifdef PRINT
-//        Serial.println("MSG: Starting tests");
-//        #endif
-//    }
-//  }
+  // Wait for XBee verification to start tests
+  Serial.write("TST: Send 'y' to begin testing phase");
+  while (true) {
+    if (Serial.available()) {
+      Serial.println("Serial Available.");
+      #ifdef PRINT
+      int r = Serial.read();
+      if (r == 121) {
+        Serial.println("MSG: Starting tests");
+        break;
+      } else {
+        Serial.print("Recieved: ");
+        Serial.println(r);
+      }
+    }
+    #endif
+  }
   
 
   

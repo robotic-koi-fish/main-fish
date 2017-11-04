@@ -1,27 +1,31 @@
-// Go towards a buoy
-   
+// Moves a servo based on the position of an object
+
+#include<Servo.h>
 #include <SPI.h>  
 #include <Pixy.h>
 
+#define SERVO_PIN 9
+
 // Global Variables -----------------
 Pixy pixy;
+Servo servo;
 int target_sig = 1; // The object we are tracking
-
 
 void setup()
 {
   Serial.begin(9600);
   Serial.println("Starting...\n");
-
+  
   pixy.init();
   Serial.println("Pixicam started.");
+  servo.attach(SERVO_PIN);
+  Serial.println("Servo initialized.");
 }
 
 void loop()
 { 
-  static int i = 0;
   char buf[32]; 
-
+  
   // Sense ---------------------------
   uint16_t blocks = pixy.getBlocks();
 
@@ -43,18 +47,26 @@ void loop()
         }
         
     }
-    Serial.print("area: ");
-    Serial.print(max_area);
-    Serial.print(" ,x: ");
-    Serial.print(max_x);
-    Serial.print(" ,y: ");
-    Serial.println(max_y);
+//    Serial.print("area: ");
+//    Serial.print(max_area);
+//    Serial.print(" ,x: ");
+//    Serial.print(max_x);
+//    Serial.print(" ,y: ");
+//    Serial.println(max_y);
+
+    // Calculate the output thrust
+    float servo_pos = (140.0/313.0)*max_x + 20.0;
+    // We don't want to move the servo excessively, so round output to nearest 5
+    int round_to = 5;
+    int final_pos = round_to * int(servo_pos/round_to);
+    
+    // Act  ----------------------------
+    Serial.print("Writing ");
+    Serial.print(final_pos);
+    Serial.println(" to the servo.");
+    
+    servo.write(final_pos);
   }
-
-  // Calculate the output thrust
-
-  // Act  ----------------------------
-  // Set the power of the thrusters
 
 }
 

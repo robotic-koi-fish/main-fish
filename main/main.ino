@@ -25,6 +25,7 @@
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
 #define CLOSE_THRESH 25000
+#define LED_DELAY 500
 
 // Define variables
 int target_sig = 1;
@@ -80,6 +81,10 @@ void loop() { // ----------L----------L----------L----------L----------L--------
     uint16_t blocks = pixy.getBlocks();
 
     // Think ---------------------------
+
+   bool ledState = ledOn();
+   
+   
    PixiBlock b = getLargestBlock(blocks);
 
     if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
@@ -95,9 +100,13 @@ void loop() { // ----------L----------L----------L----------L----------L--------
     //      Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
 
+    //Serial.println(ledState);
+    digitalWrite(LED_PIN, ledState);
     servo_yaw.write(yaw_servo_pos);
   }
 }
+
+
 
 // Gets the largest block detected by the pixicam
 PixiBlock getLargestBlock(uint16_t blocks) {
@@ -116,12 +125,12 @@ PixiBlock getLargestBlock(uint16_t blocks) {
       }
 
     }
-    print("area: ");
-    print(String(max_area));
-    print(" ,x: ");
-    print(String(max_x));
-    print(" ,y: ");
-    println(String(max_y));
+//    print("area: ");
+//    print(String(max_area));
+//    print(" ,x: ");
+//    print(String(max_x));
+//    print(" ,y: ");
+//    println(String(max_y));
 
     PixiBlock b = {max_area, max_x, max_y};
     return b;
@@ -176,5 +185,14 @@ void println(String text) {
 }
 
 
-
+bool ledOn() {
+  int t = millis() % (2*LED_DELAY);
+  Serial.println(t);
+  if (t < LED_DELAY) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
 

@@ -24,18 +24,25 @@
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
-#define CLOSE_THRESH 15000
+#define CLOSE_THRESH 25000
 
 // Define variables
 int target_sig = 1;
 byte yaw_limits[] = {20, 165};    //Servo limits 20, 165
 byte pitch_limits[] = {21, 165};  //Servo limits 21, 165
-float yaw_servo_pos = 165.0/20.0;
+float yaw_servo_pos = 165.0 / 20.0;
 
 // Define servos and cam
 Pixy pixy;
 Servo servo_yaw;
 Servo servo_pitch;
+
+// An object detected by the pixicam
+struct PixiBlock {
+  float area;
+  float x;
+  float y;
+};
 
 
 void setup() { // ----------S----------S----------S----------S----------S----------S----------S----------S----------S
@@ -73,46 +80,54 @@ void loop() { // ----------L----------L----------L----------L----------L--------
     uint16_t blocks = pixy.getBlocks();
 
     // Think ---------------------------
-    // Get the largest block
-    if (blocks) {
-      int max_area = 0;
-      int max_x = 0;
-      int max_y = 0;
-      for (int j = 0; j < blocks; j++) {
-        if (pixy.blocks[j].signature == target_sig) {
-          // Save the largest block
-          if (pixy.blocks[j].width * pixy.blocks[j].height > max_area) {
-            max_area = pixy.blocks[j].width * pixy.blocks[j].height;
-            max_x = pixy.blocks[j].x;
-            max_y = pixy.blocks[j].y;
-          }
-        }
+   PixiBlock b = getLargestBlock(blocks);
 
-      }
-      Serial.print("area: ");
-      Serial.print(max_area);
-      Serial.print(" ,x: ");
-      Serial.print(max_x);
-      Serial.print(" ,y: ");
-      Serial.println(max_y);
-
-      if((max_area != 0) && (max_x != 0) && (max_y !=0)) {
-        // Calculate the output tsteering angle
-        yaw_servo_pos = (140.0 / 313.0) * max_x + 20.0;
-      }
-      if (max_area > CLOSE_THRESH) {
-        stop();
-      }
-
-      // Act  ----------------------------
-//      Serial.print("Writing ");
-//      Serial.print(servo_pos);
-//      Serial.println(" to the servo.");
-
-      servo_yaw.write(yaw_servo_pos);
+    if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
+      // Calculate the output tsteering angle
+      yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
     }
+    if (b.area > CLOSE_THRESH) {
+      stop();
+    }
+
+    // Act  ----------------------------
+    //      Serial.print("Writing ");
+    //      Serial.print(servo_pos);
+    //      Serial.println(" to the servo.");
+
+    servo_yaw.write(yaw_servo_pos);
   }
 }
+
+// Gets the largest block detected by the pixicam
+PixiBlock getLargestBlock(uint16_t blocks) {
+  if (blocks) {
+    int max_area = 0;
+    int max_x = 0;
+    int max_y = 0;
+    for (int j = 0; j < blocks; j++) {
+      if (pixy.blocks[j].signature == target_sig) {
+        // Save the largest block
+        if (pixy.blocks[j].width * pixy.blocks[j].height > max_area) {
+          max_area = pixy.blocks[j].width * pixy.blocks[j].height;
+          max_x = pixy.blocks[j].x;
+          max_y = pixy.blocks[j].y;
+        }
+      }
+
+    }
+    print("area: ");
+    print(String(max_area));
+    print(" ,x: ");
+    print(String(max_x));
+    print(" ,y: ");
+    println(String(max_y));
+
+    PixiBlock b = {max_area, max_x, max_y};
+    return b;
+  }
+}
+
 
 bool gotInput(int asciiVal) {
   if (Serial.available()) {
@@ -142,18 +157,19 @@ void stop() {
     // Type y to re-activate
     if (gotInput(121)) {
       println("MSG: Estop de-activated");
+      digitalWrite(ESTOP_RELAY_PIN, HIGH);
       return;
     }
   }
 }
 
-void print(char *text) {
+void print(String text) {
 #ifdef PRINT
   Serial.print(text);
 #endif
 }
 
-void println(char *text) {
+void println(String text) {
 #ifdef PRINT
   Serial.println(text);
 #endif

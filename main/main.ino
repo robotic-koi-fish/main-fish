@@ -30,8 +30,6 @@ byte pitch_limits[] = {21, 165};  //Servo limits 21, 165
 Servo servo_yaw;
 Servo servo_pitch;
 
-SoftwareSerial XBee(2, 3); // RX, TX
-
 
 void setup() { // ----------S----------S----------S----------S----------S----------S----------S----------S----------S
   // Set pin modes
@@ -44,5 +42,43 @@ void setup() { // ----------S----------S----------S----------S----------S-------
 
   // Open serial comms
   Serial.begin(9600);
-  XBee.begin(9600);
 }
+
+void loop() {
+  while(true) {
+    println("Running");
+  }
+}
+
+///*
+// * function eStop()
+// * DESC: Estops the robot
+// * ARGS: none
+// * RTNS: none
+// */
+//void eStop() {
+//  digitalWrite(LED_PIN, HIGH);
+//  digitalWrite(ESTOP_RELAY_PIN, LOW);
+//  #ifdef PRINT
+//  Serial.println("MSG: Estop activated");
+//  #endif
+//  while (true) {
+//    
+//  }
+//}
+
+void print(char *text) {
+  #ifdef PRINT
+  Serial.print(text);
+  #endif
+}
+
+void println(char *text) {
+  #ifdef PRINT
+  Serial.println(text);
+  #endif
+}
+
+
+
+

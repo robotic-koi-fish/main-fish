@@ -45,6 +45,13 @@ void setup() { // ----------S----------S----------S----------S----------S-------
 
   // Activate motor power
   digitalWrite(ESTOP_RELAY_PIN, HIGH);
+
+  while(true) {
+    if (gotInput(121)) {
+      println("MSG: Starting robot");
+      return;
+    }
+  }
 }
 
 void loop() {
@@ -54,11 +61,13 @@ void loop() {
       println("MSG: Estop");
       stop();
     }
+    else {
+      
+    }
 }
 
 bool gotInput(int asciiVal) {
   if (Serial.available()) {
-    println("Serial Available.");
     int r = Serial.read();
     if (r == asciiVal) {
       return true;

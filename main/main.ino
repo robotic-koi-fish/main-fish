@@ -42,30 +42,53 @@ void setup() { // ----------S----------S----------S----------S----------S-------
 
   // Open serial comms
   Serial.begin(9600);
+
+  // Activate motor power
+  digitalWrite(ESTOP_RELAY_PIN, HIGH);
 }
 
 void loop() {
-  while(true) {
+  // Wait for XBee verification to start tests
     println("Running");
+    if (gotInput(121)) {
+      println("MSG: Estop");
+      stop();
+    }
+}
+
+bool gotInput(int asciiVal) {
+  if (Serial.available()) {
+    println("Serial Available.");
+    int r = Serial.read();
+    if (r == asciiVal) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  else {
+    return false;
   }
 }
 
-///*
-// * function eStop()
-// * DESC: Estops the robot
-// * ARGS: none
-// * RTNS: none
-// */
-//void eStop() {
-//  digitalWrite(LED_PIN, HIGH);
-//  digitalWrite(ESTOP_RELAY_PIN, LOW);
-//  #ifdef PRINT
-//  Serial.println("MSG: Estop activated");
-//  #endif
-//  while (true) {
-//    
-//  }
-//}
+/*
+ * function eStop()
+ * DESC: Estops the robot
+ * ARGS: none
+ * RTNS: none
+ */
+void stop() {
+  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(ESTOP_RELAY_PIN, LOW);
+  println("MSG: Estop activated");
+  while (true) {
+    // Type y to re-activate
+    if (gotInput(121)) {
+      println("MSG: Estop de-activated");
+      return;
+    }
+  }
+}
 
 void print(char *text) {
   #ifdef PRINT

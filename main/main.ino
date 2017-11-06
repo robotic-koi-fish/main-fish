@@ -60,6 +60,7 @@ void setup() { // ----------S----------S----------S----------S----------S-------
   // Activate motor power
   digitalWrite(ESTOP_RELAY_PIN, HIGH);
 
+  Serial.println("Initialization finished. Press 'y' to continue.");
   while (true) {
     if (gotInput(121)) {
       println("MSG: Starting robot");
@@ -80,19 +81,21 @@ void loop() { // ----------L----------L----------L----------L----------L--------
 
     // Think ---------------------------
 
-   bool ledState = ledOn();
+    bool ledState = ledOn();
    
-   
-   PixiBlock b = getLargestBlock(blocks);
-
-    if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
-      // Calculate the output tsteering angle
-      yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
+    if (blocks) {
+      PixiBlock b = getLargestBlock(blocks);
+      if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
+        // Calculate the output tsteering angle
+        yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
+      }
+      if (b.area > CLOSE_THRESH) {
+          Serial.println(b.area);
+          println("MSG: Object too close.");
+          stop();
+      }
     }
-    if (b.area > CLOSE_THRESH) {
-      stop();
-    }
-
+    
     // Act  ----------------------------
     //      Serial.print("Writing ");
     //      Serial.print(servo_pos);
@@ -108,31 +111,29 @@ void loop() { // ----------L----------L----------L----------L----------L--------
 
 // Gets the largest block detected by the pixicam
 PixiBlock getLargestBlock(uint16_t blocks) {
-  if (blocks) {
-    int max_area = 0;
-    int max_x = 0;
-    int max_y = 0;
-    for (int j = 0; j < blocks; j++) {
-      if (pixy.blocks[j].signature == target_sig) {
-        // Save the largest block
-        if (pixy.blocks[j].width * pixy.blocks[j].height > max_area) {
-          max_area = pixy.blocks[j].width * pixy.blocks[j].height;
-          max_x = pixy.blocks[j].x;
-          max_y = pixy.blocks[j].y;
-        }
+  int max_area = 0;
+  int max_x = 0;
+  int max_y = 0;
+  for (int j = 0; j < blocks; j++) {
+    if (pixy.blocks[j].signature == target_sig) {
+      // Save the largest block
+      if (pixy.blocks[j].width * pixy.blocks[j].height > max_area) {
+        max_area = pixy.blocks[j].width * pixy.blocks[j].height;
+        max_x = pixy.blocks[j].x;
+        max_y = pixy.blocks[j].y;
       }
-
     }
-//    print("area: ");
-//    print(String(max_area));
-//    print(" ,x: ");
-//    print(String(max_x));
-//    print(" ,y: ");
-//    println(String(max_y));
 
-    PixiBlock b = {max_area, max_x, max_y};
-    return b;
   }
+  print("area: ");
+  print(String(max_area));
+  print(" ,x: ");
+  print(String(max_x));
+  print(" ,y: ");
+  println(String(max_y));
+
+  PixiBlock b = {max_area, max_x, max_y};
+  return b;
 }
 
 

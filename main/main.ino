@@ -30,6 +30,7 @@
 #define STOPPED 0
 #define FORWARD 1
 #define CIRCLE 2
+#define SEARCH 3
 
 
 // Define variables
@@ -83,6 +84,9 @@ void loop() { // ----------L----------L----------L----------L----------L--------
   else if (state == FORWARD) {
     nextState = forwardState();
   }
+  else if (state == SEARCH) {
+    nextState = searchState();
+  }
   state = nextState;
 }
 
@@ -111,7 +115,7 @@ int forwardState() {
     uint16_t blocks = pixy.getBlocks();
 
     // Think ---------------------------
-    bool ledState = ledOn();
+    bool ledState = isLedOn();
    
     if (blocks) {
       PixiBlock b = getLargestBlock(blocks);
@@ -120,10 +124,13 @@ int forwardState() {
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
       }
       if (b.area > CLOSE_THRESH) {
-          Serial.println(b.area);
           println("MSG: Object too close.");
           return STOPPED;
       }
+    }
+    else {
+      Serial.println("Cannot find object. beginning to search.");
+      return SEARCH;
     }
     
     // Act  ----------------------------
@@ -135,6 +142,32 @@ int forwardState() {
     servo_yaw.write(yaw_servo_pos);
     return FORWARD;
   }
+}
+
+int searchState() {
+  if (gotInput(121)) {
+    println("MSG: Recieved Serial Stop Command");
+    return STOPPED;
+  }
+  else {
+    // Sense ---------------------------
+    uint16_t blocks = pixy.getBlocks();
+
+    // Think ---------------------------
+    bool ledState = isLedOn();
+
+    // Act ----------------------------
+    digitalWrite(LED_PIN, ledState);
+
+    if (blocks) {
+      Serial.println("Found Buoy. Resuming forward state.");
+      return FORWARD;
+    } else {
+      Serial.println("got here");
+      servo_yaw.write(20);
+      return SEARCH;
+    }
+  } 
 }
 
 
@@ -194,7 +227,7 @@ void println(String text) {
 }
 
 
-bool ledOn() {
+bool isLedOn() {
   int t = millis() % (2*LED_DELAY);
   if (t < LED_DELAY) {
     return true;

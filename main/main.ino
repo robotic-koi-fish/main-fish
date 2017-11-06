@@ -16,11 +16,10 @@
 
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
-#define WATER_SENSOR_PIN 7
 #define ESTOP_RELAY_PIN 8
 #define SERVO_YAW_PIN 9
 #define SERVO_PITCH_PIN 10
-#define LED_PIN 13
+#define LED_PIN 7
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
@@ -49,7 +48,6 @@ struct PixiBlock {
 void setup() { // ----------S----------S----------S----------S----------S----------S----------S----------S----------S
   // Set pin modes
   pinMode(PUMP_ENABLE_PIN, OUTPUT);
-  pinMode(WATER_SENSOR_PIN, INPUT);
   pinMode(ESTOP_RELAY_PIN, OUTPUT);
   servo_yaw.attach(SERVO_YAW_PIN);
   servo_pitch.attach(SERVO_PITCH_PIN);
@@ -187,7 +185,6 @@ void println(String text) {
 
 bool ledOn() {
   int t = millis() % (2*LED_DELAY);
-  Serial.println(t);
   if (t < LED_DELAY) {
     return true;
   }

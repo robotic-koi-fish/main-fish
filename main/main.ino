@@ -26,6 +26,12 @@
 #define CLOSE_THRESH 25000
 #define LED_DELAY 500
 
+// Our States
+#define STOPPED 0
+#define FORWARD 1
+#define CIRCLE 2
+
+
 // Define variables
 int target_sig = 1;
 byte yaw_limits[] = {20, 165};    //Servo limits 20, 165
@@ -68,19 +74,43 @@ void setup() { // ----------S----------S----------S----------S----------S-------
     }
   }
 }
-
+int state = FORWARD;
 void loop() { // ----------L----------L----------L----------L----------L----------L----------L----------L----------L----------L
+  int nextState;
+  if (state == STOPPED) {
+    nextState = stoppedState();
+  }
+  else if (state == FORWARD) {
+    nextState = forwardState();
+  }
+  state = nextState;
+}
+
+int stoppedState() {
+  // Type y to re-activate
+  if (gotInput(121)) {
+    println("MSG: Estop de-activated");
+    digitalWrite(ESTOP_RELAY_PIN, HIGH);
+    return FORWARD;
+  }
+  else {
+    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(ESTOP_RELAY_PIN, LOW);
+    return STOPPED;
+  }
+}
+
+int forwardState() {
   // Wait for XBee verification to start tests
   if (gotInput(121)) {
-    println("MSG: Estop");
-    stop();
+    println("MSG: Recieved Serial Stop Command");
+    return STOPPED;
   }
   else {
     // Sense ---------------------------
     uint16_t blocks = pixy.getBlocks();
 
     // Think ---------------------------
-
     bool ledState = ledOn();
    
     if (blocks) {
@@ -92,7 +122,7 @@ void loop() { // ----------L----------L----------L----------L----------L--------
       if (b.area > CLOSE_THRESH) {
           Serial.println(b.area);
           println("MSG: Object too close.");
-          stop();
+          return STOPPED;
       }
     }
     
@@ -101,9 +131,9 @@ void loop() { // ----------L----------L----------L----------L----------L--------
     //      Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
 
-    //Serial.println(ledState);
     digitalWrite(LED_PIN, ledState);
     servo_yaw.write(yaw_servo_pos);
+    return FORWARD;
   }
 }
 
@@ -148,26 +178,6 @@ bool gotInput(int asciiVal) {
   }
   else {
     return false;
-  }
-}
-
-/*
-   function eStop()
-   DESC: Estops the robot
-   ARGS: none
-   RTNS: none
-*/
-void stop() {
-  digitalWrite(LED_PIN, HIGH);
-  digitalWrite(ESTOP_RELAY_PIN, LOW);
-  println("MSG: Estop activated");
-  while (true) {
-    // Type y to re-activate
-    if (gotInput(121)) {
-      println("MSG: Estop de-activated");
-      digitalWrite(ESTOP_RELAY_PIN, HIGH);
-      return;
-    }
   }
 }
 

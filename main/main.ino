@@ -11,15 +11,19 @@
 // Define constants
 #define PRINT true
 
-#define LOGIC_BATTERY_PIN A1
-#define MAIN_BATTERY_PIN A0
+#define LOGIC_BATTERY_PIN A0
+#define MAIN_BATTERY_PIN A1
+#define TEMPERATURE_SENSOR A2
+#define WATER_SENSOR A3
 
+#define RESET_RELAY_PIN 2
+#define HALL_EFFECT_PIN 3
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
-#define ESTOP_RELAY_PIN 8
-#define SERVO_YAW_PIN 9
-#define SERVO_PITCH_PIN 10
+#define SERVO_YAW_PIN 6
 #define LED_PIN 7
+#define ESTOP_RELAY_PIN 8
+#define SERVO_PITCH_PIN 9
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
@@ -34,10 +38,13 @@
 
 
 // Define variables
-int target_sig = 1;
-byte yaw_limits[] = {20, 165};    //Servo limits 20, 165
-byte pitch_limits[] = {21, 165};  //Servo limits 21, 165
-float yaw_servo_pos = 165.0 / 20.0;
+byte mission_file[] = {1, 2, 1};     // Order of buoys: 1 = orange box, 2 = blue post-it
+int target_num = 0;
+int target_sig = mission_file[target_num]; // Current buoy target
+byte yaw_limits[] = {25, 165};    // Servo limits 20, 165
+byte pitch_limits[] = {25, 165};  // Servo limits 21, 165
+float yaw_servo_pos = 165.0 / 25.0;
+float pitch_servo_pos = 165.0 / 25.0;
 
 // Define servos and cam
 Pixy pixy;
@@ -56,27 +63,29 @@ void setup() { // ----------S----------S----------S----------S----------S-------
   // Set pin modes
   pinMode(PUMP_ENABLE_PIN, OUTPUT);
   pinMode(ESTOP_RELAY_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
   servo_yaw.attach(SERVO_YAW_PIN);
   servo_pitch.attach(SERVO_PITCH_PIN);
-  pinMode(LED_PIN, OUTPUT);
   pixy.init();
 
   // Open serial comms
   Serial.begin(9600);
 
-  // Activate motor power
-  digitalWrite(ESTOP_RELAY_PIN, HIGH);
-
   Serial.println("Initialization finished. Press 'y' to continue.");
   while (true) {
     if (gotInput(121)) {
       println("MSG: Starting robot");
+      digitalWrite(ESTOP_RELAY_PIN, HIGH); //Activate motor power
       return;
     }
   }
 }
+
 int state = FORWARD;
+
 void loop() { // ----------L----------L----------L----------L----------L----------L----------L----------L----------L----------L
+
+  // State machine
   int nextState;
   if (state == STOPPED) {
     nextState = stoppedState();
@@ -87,9 +96,21 @@ void loop() { // ----------L----------L----------L----------L----------L--------
   else if (state == SEARCH) {
     nextState = searchState();
   }
+
+  // If state changes, print new state
+  if (state != nextState) {
+    print("MSG: State change to ");
+    println(String(nextState));
+  }
   state = nextState;
+
+  // ACT -------------------------------------
+  servo_yaw.write(yaw_servo_pos);
+  servo_pitch.write(pitch_servo_pos);
+  
 }
 
+// ----------STOPPED----------STOPPED----------STOPPED
 int stoppedState() {
   // Type y to re-activate
   if (gotInput(121)) {
@@ -104,12 +125,15 @@ int stoppedState() {
   }
 }
 
+// ----------FORWARD----------FORWARD----------FORWARD
 int forwardState() {
-  // Wait for XBee verification to start tests
+  
+  // Check for Serial Stop Command
   if (gotInput(121)) {
-    println("MSG: Recieved Serial Stop Command");
+    println("MSG: Recieved serial stop command");
     return STOPPED;
   }
+  
   else {
     // Sense ---------------------------
     uint16_t blocks = pixy.getBlocks();
@@ -123,30 +147,33 @@ int forwardState() {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
       }
+
+      // If buoy in-cam size passes threshold, get next buoy or mission complete
       if (b.area > CLOSE_THRESH) {
-          println("MSG: Object too close.");
-          return STOPPED;
+        
+          return missionStatus();
       }
     }
+    
     else {
-      Serial.println("Cannot find object. beginning to search.");
+      Serial.println("ERR: Cannot find buoy");
       return SEARCH;
     }
     
-    // Act  ----------------------------
+    // Act ----------------------------------
     //      Serial.print("Writing ");
     //      Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
 
     digitalWrite(LED_PIN, ledState);
-    servo_yaw.write(yaw_servo_pos);
     return FORWARD;
   }
 }
 
+// ----------SEARCH----------SEARCH----------SEARCH
 int searchState() {
   if (gotInput(121)) {
-    println("MSG: Recieved Serial Stop Command");
+    println("MSG: Recieved serial stop command");
     return STOPPED;
   }
   else {
@@ -160,11 +187,10 @@ int searchState() {
     digitalWrite(LED_PIN, ledState);
 
     if (blocks) {
-      Serial.println("Found Buoy. Resuming forward state.");
+      Serial.println("MSG: Found buoy");
       return FORWARD;
     } else {
-      Serial.println("got here");
-      servo_yaw.write(20);
+      yaw_servo_pos = 40;
       return SEARCH;
     }
   } 
@@ -234,6 +260,31 @@ bool isLedOn() {
   }
   else {
     return false;
+  }
+}
+
+/*
+ * checks and updates status of mission
+ * @arguments: none
+ * @returns: State for system
+ */
+int missionStatus() {
+  Serial.print("MSG: Buoy ");
+  Serial.println(target_sig);
+  Serial.print("reached");
+  if (sizeof(mission_file) > target_num + 1) {
+    print("MSG: Searching for target ");
+    print(String(target_num + 1));
+    print(" out of ");
+    print(String(sizeof(mission_file)));
+    println(" targets.");
+    target_num += 1;
+    target_sig = mission_file[target_num];
+    return SEARCH;
+  }
+  else {
+    Serial.println("MSG: Successfully completed mission");
+    return STOPPED;
   }
 }
 

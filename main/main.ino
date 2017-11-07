@@ -116,7 +116,7 @@ int forwardState() {
 
     // Think ---------------------------
     bool ledState = isLedOn();
-   
+
     if (blocks) {
       PixiBlock b = getLargestBlock(blocks);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
@@ -132,7 +132,7 @@ int forwardState() {
       Serial.println("Cannot find object. beginning to search.");
       return SEARCH;
     }
-    
+
     // Act  ----------------------------
     //      Serial.print("Writing ");
     //      Serial.print(servo_pos);
@@ -163,11 +163,10 @@ int searchState() {
       Serial.println("Found Buoy. Resuming forward state.");
       return FORWARD;
     } else {
-      Serial.println("got here");
-      servo_yaw.write(20);
+      servo_yaw.write(40);
       return SEARCH;
     }
-  } 
+  }
 }
 
 
@@ -226,7 +225,6 @@ void println(String text) {
 #endif
 }
 
-
 bool isLedOn() {
   int t = millis() % (2*LED_DELAY);
   if (t < LED_DELAY) {
@@ -236,4 +234,3 @@ bool isLedOn() {
     return false;
   }
 }
-

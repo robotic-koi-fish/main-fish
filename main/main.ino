@@ -9,7 +9,6 @@
 #include<Pixy.h>
 
 // Define constants
-#define PRINT true
 
 #define LOGIC_BATTERY_PIN A0
 #define MAIN_BATTERY_PIN A1
@@ -74,7 +73,7 @@ void setup() { // ----------S----------S----------S----------S----------S-------
   Serial.println("Initialization finished. Press 'y' to continue.");
   while (true) {
     if (gotInput(121)) {
-      println("MSG: Starting robot");
+      Serial.println("MSG: Starting robot");
       digitalWrite(ESTOP_RELAY_PIN, HIGH); //Activate motor power
       return;
     }
@@ -97,11 +96,11 @@ void loop() { // ----------L----------L----------L----------L----------L--------
     nextState = searchState();
   }
 
-  // If state changes, print new state
-  if (state != nextState) {
-    print("MSG: State change to ");
-    println(String(nextState));
-  }
+//  // If state changes, print new state
+//  if (state != nextState) {
+//    Serial.print("MSG: State change to ");
+//    Serial.println(String(nextState));
+//  }
   state = nextState;
 
   // ACT -------------------------------------
@@ -114,7 +113,7 @@ void loop() { // ----------L----------L----------L----------L----------L--------
 int stoppedState() {
   // Type y to re-activate
   if (gotInput(121)) {
-    println("MSG: Estop de-activated");
+    Serial.println("MSG: Estop de-activated");
     digitalWrite(ESTOP_RELAY_PIN, HIGH);
     return FORWARD;
   }
@@ -130,7 +129,7 @@ int forwardState() {
   
   // Check for Serial Stop Command
   if (gotInput(121)) {
-    println("MSG: Recieved serial stop command");
+    Serial.println("MSG: Recieved serial stop command");
     return STOPPED;
   }
   
@@ -156,7 +155,7 @@ int forwardState() {
     }
     
     else {
-      Serial.println("ERR: Cannot find buoy");
+      Serial.println("MSG: Searching for buoy");
       return SEARCH;
     }
     
@@ -173,7 +172,7 @@ int forwardState() {
 // ----------SEARCH----------SEARCH----------SEARCH
 int searchState() {
   if (gotInput(121)) {
-    println("MSG: Recieved serial stop command");
+    Serial.println("MSG: Recieved serial stop command");
     return STOPPED;
   }
   else {
@@ -214,12 +213,12 @@ PixiBlock getLargestBlock(uint16_t blocks) {
     }
 
   }
-  print("area: ");
-  print(String(max_area));
-  print(" ,x: ");
-  print(String(max_x));
-  print(" ,y: ");
-  println(String(max_y));
+  Serial.print("area: ");
+  Serial.print(String(max_area));
+  Serial.print(" ,x: ");
+  Serial.print(String(max_x));
+  Serial.print(" ,y: ");
+  Serial.println(String(max_y));
 
   PixiBlock b = {max_area, max_x, max_y};
   return b;
@@ -239,19 +238,6 @@ bool gotInput(int asciiVal) {
     return false;
   }
 }
-
-void print(String text) {
-#ifdef PRINT
-  Serial.print(text);
-#endif
-}
-
-void println(String text) {
-#ifdef PRINT
-  Serial.println(text);
-#endif
-}
-
 
 bool isLedOn() {
   int t = millis() % (2*LED_DELAY);
@@ -273,11 +259,11 @@ int missionStatus() {
   Serial.println(target_sig);
   Serial.print("reached");
   if (sizeof(mission_file) > target_num + 1) {
-    print("MSG: Searching for target ");
-    print(String(target_num + 1));
-    print(" out of ");
-    print(String(sizeof(mission_file)));
-    println(" targets.");
+    Serial.print("MSG: Searching for target ");
+    Serial.print(String(target_num + 1));
+    Serial.print(" out of ");
+    Serial.print(String(sizeof(mission_file)));
+    Serial.println(" targets.");
     target_num += 1;
     target_sig = mission_file[target_num];
     return SEARCH;

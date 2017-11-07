@@ -70,7 +70,7 @@ void setup() { // ----------S----------S----------S----------S----------S-------
   Serial.println("Initialization finished. Press 'y' to continue.");
   while (true) {
     if (gotInput(121)) {
-      println("MSG: Starting robot");
+      Serial.println("MSG: Starting robot");
       return;
     }
   }
@@ -93,7 +93,7 @@ void loop() { // ----------L----------L----------L----------L----------L--------
 int stoppedState() {
   // Type y to re-activate
   if (gotInput(121)) {
-    println("MSG: Estop de-activated");
+    Serial.println("MSG: Estop de-activated");
     digitalWrite(ESTOP_RELAY_PIN, HIGH);
     return FORWARD;
   }
@@ -107,7 +107,7 @@ int stoppedState() {
 int forwardState() {
   // Wait for XBee verification to start tests
   if (gotInput(121)) {
-    println("MSG: Recieved Serial Stop Command");
+    Serial.println("MSG: Recieved Serial Stop Command");
     return STOPPED;
   }
   else {
@@ -124,7 +124,7 @@ int forwardState() {
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
       }
       if (b.area > CLOSE_THRESH) {
-          println("MSG: Object too close.");
+          Serial.println("MSG: Object too close.");
           return STOPPED;
       }
     }
@@ -134,8 +134,8 @@ int forwardState() {
     }
 
     // Act  ----------------------------
-    //      Serial.print("Writing ");
-    //      Serial.print(servo_pos);
+    //      Serial.Serial.print("Writing ");
+    //      Serial.Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
 
     digitalWrite(LED_PIN, ledState);
@@ -146,7 +146,7 @@ int forwardState() {
 
 int searchState() {
   if (gotInput(121)) {
-    println("MSG: Recieved Serial Stop Command");
+    Serial.println("MSG: Recieved Serial Stop Command");
     return STOPPED;
   }
   else {
@@ -187,12 +187,12 @@ PixiBlock getLargestBlock(uint16_t blocks) {
     }
 
   }
-  print("area: ");
-  print(String(max_area));
-  print(" ,x: ");
-  print(String(max_x));
-  print(" ,y: ");
-  println(String(max_y));
+  Serial.print("area: ");
+  Serial.print(String(max_area));
+  Serial.print(" ,x: ");
+  Serial.print(String(max_x));
+  Serial.print(" ,y: ");
+  Serial.println(String(max_y));
 
   PixiBlock b = {max_area, max_x, max_y};
   return b;
@@ -211,18 +211,6 @@ bool gotInput(int asciiVal) {
   else {
     return false;
   }
-}
-
-void print(String text) {
-#ifdef PRINT
-  Serial.print(text);
-#endif
-}
-
-void println(String text) {
-#ifdef PRINT
-  Serial.println(text);
-#endif
 }
 
 bool isLedOn() {

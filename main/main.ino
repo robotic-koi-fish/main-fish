@@ -35,8 +35,6 @@
 
 // Define variables
 int target_sig = 1;
-byte yaw_limits[] = {20, 165};    //Servo limits 20, 165
-byte pitch_limits[] = {21, 165};  //Servo limits 21, 165
 float yaw_servo_pos = 165.0 / 20.0;
 
 // Define servos and cam
@@ -87,7 +85,9 @@ void loop() { // ----------L----------L----------L----------L----------L--------
   else if (state == SEARCH) {
     nextState = searchState();
   }
+
   state = nextState;
+
 }
 
 int stoppedState() {
@@ -125,7 +125,15 @@ int forwardState() {
       }
       if (b.area > CLOSE_THRESH) {
           Serial.println("MSG: Object too close.");
-          return STOPPED;
+          bool done = toNextTarget();
+          if (done) {
+            Serial.println("Done!");
+            return STOPPED;
+          }
+          else {
+            return SEARCH;
+          }
+
       }
     }
     else {
@@ -159,7 +167,7 @@ int searchState() {
     // Act ----------------------------
     digitalWrite(LED_PIN, ledState);
 
-    if (blocks) {
+    if (blocks &&  (getLargestBlock(blocks).area > 0)) {
       Serial.println("Found Buoy. Resuming forward state.");
       return FORWARD;
     } else {
@@ -177,7 +185,7 @@ PixiBlock getLargestBlock(uint16_t blocks) {
   int max_x = 0;
   int max_y = 0;
   for (int j = 0; j < blocks; j++) {
-    if (pixy.blocks[j].signature == target_sig) {
+    if (pixy.blocks[j].signature == getTarget()) {
       // Save the largest block
       if (pixy.blocks[j].width * pixy.blocks[j].height > max_area) {
         max_area = pixy.blocks[j].width * pixy.blocks[j].height;
@@ -187,14 +195,19 @@ PixiBlock getLargestBlock(uint16_t blocks) {
     }
 
   }
-  Serial.print("area: ");
-  Serial.print(String(max_area));
-  Serial.print(" ,x: ");
-  Serial.print(String(max_x));
-  Serial.print(" ,y: ");
-  Serial.println(String(max_y));
 
   PixiBlock b = {max_area, max_x, max_y};
+
+  if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
+    // Calculate the output tsteering angle
+    Serial.print("area: ");
+    Serial.print(b.area);
+    Serial.print(" ,x: ");
+    Serial.print(b.x);
+    Serial.print(" ,y: ");
+    Serial.println(b.y);
+  }
+
   return b;
 }
 
@@ -212,6 +225,7 @@ bool gotInput(int asciiVal) {
     return false;
   }
 }
+
 
 bool isLedOn() {
   int t = millis() % (2*LED_DELAY);

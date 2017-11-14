@@ -9,17 +9,20 @@
 #include<Pixy.h>
 
 // Define constants
-#define PRINT true
 
-#define LOGIC_BATTERY_PIN A1
-#define MAIN_BATTERY_PIN A0
+#define LOGIC_BATTERY_PIN A0
+#define MAIN_BATTERY_PIN A1
+#define TEMPERATURE_SENSOR A2
+#define WATER_SENSOR A3
 
+#define RESET_RELAY_PIN 2
+#define HALL_EFFECT_PIN 3
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
-#define ESTOP_RELAY_PIN 8
-#define SERVO_YAW_PIN 9
-#define SERVO_PITCH_PIN 10
+#define SERVO_YAW_PIN 6
 #define LED_PIN 7
+#define ESTOP_RELAY_PIN 8
+#define SERVO_PITCH_PIN 9
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
@@ -56,16 +59,13 @@ void setup() { // ----------S----------S----------S----------
   // Set pin modes
   pinMode(PUMP_ENABLE_PIN, OUTPUT);
   pinMode(ESTOP_RELAY_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
   servo_yaw.attach(SERVO_YAW_PIN);
   servo_pitch.attach(SERVO_PITCH_PIN);
-  pinMode(LED_PIN, OUTPUT);
   pixy.init();
 
   // Open serial comms
   Serial.begin(9600);
-
-  // Activate motor power
-  digitalWrite(ESTOP_RELAY_PIN, HIGH);
 
   Serial.println("Initialization finished. Press 'y' to continue.");
   while (true) {
@@ -75,6 +75,7 @@ void setup() { // ----------S----------S----------S----------
     }
   }
 }
+
 int state = FORWARD;
 void loop() { // ----------L----------L----------L----------L----------L
   int nextState;
@@ -98,6 +99,7 @@ void loop() { // ----------L----------L----------L----------L----------L
 
 }
 
+// ----------STOPPED----------STOPPED----------STOPPED
 int stoppedState() {
   // Type y to re-activate
   if (gotInput(121)) {
@@ -112,12 +114,15 @@ int stoppedState() {
   }
 }
 
+// ----------FORWARD----------FORWARD----------FORWARD
 int forwardState() {
-  // Wait for XBee verification to start tests
+  
+  // Check for Serial Stop Command
   if (gotInput(121)) {
     Serial.println("FORWARD: Recieved Serial Stop Command");
     return STOPPED;
   }
+  
   else {
     // Sense ---------------------------
     uint16_t blocks = pixy.getBlocks();
@@ -131,6 +136,8 @@ int forwardState() {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
       }
+
+      // If buoy in-cam size passes threshold, get next buoy or mission complete
       if (b.area > CLOSE_THRESH) {
           Serial.println("FORWARD: Object too close. Starting to turn away.");
           return TURN_AWAY;
@@ -142,7 +149,6 @@ int forwardState() {
     //      Serial.Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
     digitalWrite(LED_PIN, ledState);
-    servo_yaw.write(yaw_servo_pos);
     return FORWARD;
   }
 
@@ -217,6 +223,7 @@ int turnToState() {
   }
 }
 
+// ----------SEARCH----------SEARCH----------SEARCH
 int searchState() {
   if (gotInput(121)) {
     Serial.println("SEARCH: Recieved Serial Stop Command");

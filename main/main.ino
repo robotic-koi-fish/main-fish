@@ -149,7 +149,7 @@ int forwardState() {
       PixiBlock b_new = getLargestBlock(blocks, getTarget());
       push(prev_blocks[getTarget()], b_new, N);
       PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
-      Serial.println(b.area);
+      // Serial.println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -211,7 +211,7 @@ int turnAwayState() {
     }
 
     PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
-    Serial.println(b.area);
+    // Serial.println(b.area);
     if (b.area > 0) {
       // Keep turning
       servo_yaw.write(40);
@@ -230,7 +230,6 @@ int turnAwayState() {
 
 
 int turnToState() {
-  Serial.println("TURN TO");
   if (gotInput(121)) {
     Serial.println("TURN_TO: Recieved Serial Stop Command");
     return STOPPED;
@@ -245,7 +244,18 @@ int turnToState() {
     // Act ----------------------------
     digitalWrite(LED_PIN, ledState);
 
-    if (blocks &&  (getLargestBlock(blocks, getTarget()).area > 0)) {
+    // If we see our block, push value onto block history
+    if (blocks) {
+      PixiBlock b_new = getLargestBlock(blocks, getTarget());
+      push(prev_blocks[getTarget()], b_new, N);
+    } else { // Otherwise, push 0's onto block history
+      push(prev_blocks[0], PixiBlock(), N);
+      push(prev_blocks[1], PixiBlock(), N);
+      push(prev_blocks[2], PixiBlock(), N);
+    }
+    PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+    // Serial.println(b.area);
+    if (b.area > 0) {
       bool done = toNextTarget();
       if (done) {
         Serial.println("TURN_TO: Done!");
@@ -279,7 +289,19 @@ int searchState() {
     // Act ----------------------------
     digitalWrite(LED_PIN, ledState);
 
-    if (blocks &&  (getLargestBlock(blocks, getTarget()).area > 0)) {
+    // If we see our block, push value onto block history
+    if (blocks) {
+      PixiBlock b_new = getLargestBlock(blocks, getTarget());
+      push(prev_blocks[getTarget()], b_new, N);
+    } else { // Otherwise, push 0's onto block history
+      push(prev_blocks[0], PixiBlock(), N);
+      push(prev_blocks[1], PixiBlock(), N);
+      push(prev_blocks[2], PixiBlock(), N);
+    }
+    PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+    // Serial.println(b.area);
+
+    if (b.area > 0) {
       Serial.print("SEARCH: Found Buoy #");
       Serial.print(getTarget());
       Serial.println(". Resuming forward state.");

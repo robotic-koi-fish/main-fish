@@ -37,7 +37,7 @@
 #define TURN_AWAY 4
 #define TURN_TO 5
 
-#define N 10
+#define N 20
 
 
 // Define variables
@@ -51,11 +51,11 @@ Servo servo_pitch;
 
 // An object detected by the pixicam
 struct PixiBlock {
-  int area;
+  long area;
   int x;
   int y;
 
-  PixiBlock(int area0, int x0, int y0) {
+  PixiBlock(long area0, int x0, int y0) {
     area = area0;
     x = x0;
     y = y0;
@@ -146,8 +146,10 @@ int forwardState() {
     bool ledState = isLedOn();
 
     if (blocks) {
-      PixiBlock b = getLargestBlock(blocks, getTarget());
-      push(prev_blocks[getTarget()], b, N);
+      PixiBlock b_new = getLargestBlock(blocks, getTarget());
+      push(prev_blocks[getTarget()], b_new, N);
+      PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+      Serial.println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -165,11 +167,11 @@ int forwardState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
 
-    for (int j = 0; j<N; j+=1) {
-      Serial.print(prev_blocks[getTarget()][j].area);
-      Serial.print(' ');
-    }
-    Serial.println(' ');
+    // for (int j = 0; j<N; j+=1) {
+    //   Serial.print(prev_blocks[getTarget()][j].area);
+    //   Serial.print(' ');
+    // }
+    // Serial.println(' ');
 
     // Act  ----------------------------
     //      Serial.Serial.print("Writing ");
@@ -294,10 +296,26 @@ void push(PixiBlock arr[], PixiBlock new_el, int n) {
   }
 }
 
+// Averages the areas and positions of an array of pixiblocks of length n
+PixiBlock getAverageBlock(PixiBlock arr[], int n) {
+  long avg_area = 0;
+  int avg_x = 0;
+  int avg_y = 0;
+  for (int j = 0; j<N; j+=1) {
+    avg_area += arr[j].area;
+    avg_x += arr[j].x;
+    avg_y += arr[j].y;
+  }
+  avg_area = avg_area / n;
+  avg_x = avg_x / n;
+  avg_y = avg_y / n;
+  return PixiBlock(avg_area, avg_x, avg_y);
+}
+
 
 // Gets the largest block detected by the pixicam
 PixiBlock getLargestBlock(uint16_t blocks, int target) {
-  int max_area = 0;
+  long max_area = 0;
   int max_x = 0;
   int max_y = 0;
   for (int j = 0; j < blocks; j++) {

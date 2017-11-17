@@ -37,6 +37,8 @@
 #define TURN_AWAY 4
 #define TURN_TO 5
 
+#define N 10
+
 
 // Define variables
 int target_sig = 1;
@@ -49,10 +51,25 @@ Servo servo_pitch;
 
 // An object detected by the pixicam
 struct PixiBlock {
-  float area;
-  float x;
-  float y;
+  int area;
+  int x;
+  int y;
+
+  PixiBlock(int area0, int x0, int y0) {
+    area = area0;
+    x = x0;
+    y = y0;
+  }
+
+  PixiBlock() {
+    area = 0;
+    x = 0;
+    y = 0;
+  }
 };
+
+// Stores the N most recent block values for our 3 targets
+PixiBlock prev_blocks[3][N] = {{}};
 
 
 void setup() { // ----------S----------S----------S----------
@@ -130,7 +147,7 @@ int forwardState() {
 
     if (blocks) {
       PixiBlock b = getLargestBlock(blocks, getTarget());
-      //push(prev_blocks[getTarget()], b, N);
+      push(prev_blocks[getTarget()], b, N);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -142,6 +159,17 @@ int forwardState() {
           return TURN_AWAY;
       }
     }
+    else {
+      push(prev_blocks[0], PixiBlock(), N);
+      push(prev_blocks[1], PixiBlock(), N);
+      push(prev_blocks[2], PixiBlock(), N);
+    }
+
+    for (int j = 0; j<N; j+=1) {
+      Serial.print(prev_blocks[getTarget()][j].area);
+      Serial.print(' ');
+    }
+    Serial.println(' ');
 
     // Act  ----------------------------
     //      Serial.Serial.print("Writing ");
@@ -281,7 +309,6 @@ PixiBlock getLargestBlock(uint16_t blocks, int target) {
         max_y = pixy.blocks[j].y;
       }
     }
-
   }
 
   PixiBlock b = {max_area, max_x, max_y};

@@ -26,7 +26,7 @@
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
-#define CLOSE_THRESH 25000
+#define CLOSE_THRESH 3000
 #define LED_DELAY 500
 
 // Our States
@@ -200,8 +200,19 @@ int turnAwayState() {
     // Act -----------------
     digitalWrite(LED_PIN, ledState);
 
-    // If we see our block
-    if (blocks && (getLargestBlock(blocks, getTarget()).area > 0)) {
+    // If we see our block, push value onto block history
+    if (blocks) {
+      PixiBlock b_new = getLargestBlock(blocks, getTarget());
+      push(prev_blocks[getTarget()], b_new, N);
+    } else { // Otherwise, push 0's onto block history
+      push(prev_blocks[0], PixiBlock(), N);
+      push(prev_blocks[1], PixiBlock(), N);
+      push(prev_blocks[2], PixiBlock(), N);
+    }
+
+    PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+    Serial.println(b.area);
+    if (b.area > 0) {
       // Keep turning
       servo_yaw.write(40);
       return TURN_AWAY;

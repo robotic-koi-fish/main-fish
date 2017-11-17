@@ -116,13 +116,11 @@ int stoppedState() {
 
 // ----------FORWARD----------FORWARD----------FORWARD
 int forwardState() {
-  
   // Check for Serial Stop Command
   if (gotInput(121)) {
     Serial.println("FORWARD: Recieved Serial Stop Command");
     return STOPPED;
   }
-  
   else {
     // Sense ---------------------------
     uint16_t blocks = pixy.getBlocks();
@@ -131,7 +129,8 @@ int forwardState() {
     bool ledState = isLedOn();
 
     if (blocks) {
-      PixiBlock b = getLargestBlock(blocks);
+      PixiBlock b = getLargestBlock(blocks, getTarget());
+      //push(prev_blocks[getTarget()], b, N);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -172,7 +171,7 @@ int turnAwayState() {
     digitalWrite(LED_PIN, ledState);
 
     // If we see our block
-    if (blocks && (getLargestBlock(blocks).area > 0)) {
+    if (blocks && (getLargestBlock(blocks, getTarget()).area > 0)) {
       // Keep turning
       servo_yaw.write(40);
       return TURN_AWAY;
@@ -205,7 +204,7 @@ int turnToState() {
     // Act ----------------------------
     digitalWrite(LED_PIN, ledState);
 
-    if (blocks &&  (getLargestBlock(blocks).area > 0)) {
+    if (blocks &&  (getLargestBlock(blocks, getTarget()).area > 0)) {
       bool done = toNextTarget();
       if (done) {
         Serial.println("TURN_TO: Done!");
@@ -239,7 +238,7 @@ int searchState() {
     // Act ----------------------------
     digitalWrite(LED_PIN, ledState);
 
-    if (blocks &&  (getLargestBlock(blocks).area > 0)) {
+    if (blocks &&  (getLargestBlock(blocks, getTarget()).area > 0)) {
       Serial.print("SEARCH: Found Buoy #");
       Serial.print(getTarget());
       Serial.println(". Resuming forward state.");
@@ -253,13 +252,28 @@ int searchState() {
 
 // Helper Functions -------------------------------------------------
 
+
+// pushes an item onto the beginning of an array, shifting each other element down.
+void push(PixiBlock arr[], PixiBlock new_el, int n) {
+  PixiBlock last = new_el;
+  PixiBlock temp;
+  for (int i = 0; i < n; i=i+1) {
+    // This should insert the new element at beginning
+    // And move the rest down
+    temp = arr[i];
+    arr[i] = last;
+    last = temp;
+  }
+}
+
+
 // Gets the largest block detected by the pixicam
-PixiBlock getLargestBlock(uint16_t blocks) {
+PixiBlock getLargestBlock(uint16_t blocks, int target) {
   int max_area = 0;
   int max_x = 0;
   int max_y = 0;
   for (int j = 0; j < blocks; j++) {
-    if (pixy.blocks[j].signature == getTarget()) {
+    if (pixy.blocks[j].signature == target) {
       // Save the largest block
       if (pixy.blocks[j].width * pixy.blocks[j].height > max_area) {
         max_area = pixy.blocks[j].width * pixy.blocks[j].height;

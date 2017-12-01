@@ -1,7 +1,7 @@
 // mission.ino is a class-like file that controls getting/setting the current mission.
 // The mission is a list of target buoys that will be tracked.
 int i = 0;
-int mission[] = {3, 2};
+int mission[] = {1, 2, 3};
 int getTarget() {
   return mission[i];
 }

@@ -147,7 +147,7 @@ int forwardState() {
 
     if (blocks) {
       PixiBlock b_new = getLargestBlock(blocks, getTarget());
-      push(prev_blocks[getTarget()], b_new, N);
+      push(prev_blocks[getTarget() - 1], b_new, N);
       // pixycam targets are 1 indexed so getTarget() is too
       PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
       Serial.println(b.area);
@@ -168,19 +168,19 @@ int forwardState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
 
-    for (int j = 0; j<N; j+=1) {
+    // for (int j = 0; j<N; j+=1) {
 
-      Serial.print(prev_blocks[getTarget() - 1 ][j].area);
-      Serial.print(' ');
-    }
-    Serial.println(' ');
+    //   Serial.print(prev_blocks[getTarget() - 1 ][j].area);
+    //   Serial.print(' ');
+    // }
+    // Serial.println(' ');
 
     // Act  ----------------------------
     //      Serial.Serial.print("Writing ");
     //      Serial.Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
-    Serial.print("Writing: ");
-    Serial.println(yaw_servo_pos);
+    // Serial.print("Writing: ");
+    // Serial.println(yaw_servo_pos);
     digitalWrite(LED_PIN, ledState);
     return FORWARD;
   }
@@ -207,7 +207,7 @@ int turnAwayState() {
     // If we see our block, push value onto block history
     if (blocks) {
       PixiBlock b_new = getLargestBlock(blocks, getTarget());
-      push(prev_blocks[getTarget()], b_new, N);
+      push(prev_blocks[getTarget() - 1], b_new, N);
     } else { // Otherwise, push 0's onto block history
       push(prev_blocks[0], PixiBlock(), N);
       push(prev_blocks[1], PixiBlock(), N);
@@ -251,7 +251,7 @@ int turnToState() {
     // If we see our block, push value onto block history
     if (blocks) {
       PixiBlock b_new = getLargestBlock(blocks, getTarget());
-      push(prev_blocks[getTarget()], b_new, N);
+      push(prev_blocks[getTarget() - 1], b_new, N);
     } else { // Otherwise, push 0's onto block history
       push(prev_blocks[0], PixiBlock(), N);
       push(prev_blocks[1], PixiBlock(), N);
@@ -296,7 +296,7 @@ int searchState() {
     // If we see our block, push value onto block history
     if (blocks) {
       PixiBlock b_new = getLargestBlock(blocks, getTarget());
-      push(prev_blocks[getTarget()], b_new, N);
+      push(prev_blocks[getTarget() - 1], b_new, N);
     } else { // Otherwise, push 0's onto block history
       push(prev_blocks[0], PixiBlock(), N);
       push(prev_blocks[1], PixiBlock(), N);

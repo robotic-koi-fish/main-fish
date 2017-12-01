@@ -148,8 +148,9 @@ int forwardState() {
     if (blocks) {
       PixiBlock b_new = getLargestBlock(blocks, getTarget());
       push(prev_blocks[getTarget()], b_new, N);
-      PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
-      // Serial.println(b.area);
+      // pixycam targets are 1 indexed so getTarget() is too
+      PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
+      Serial.println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -167,16 +168,19 @@ int forwardState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
 
-    // for (int j = 0; j<N; j+=1) {
-    //   Serial.print(prev_blocks[getTarget()][j].area);
-    //   Serial.print(' ');
-    // }
-    // Serial.println(' ');
+    for (int j = 0; j<N; j+=1) {
+
+      Serial.print(prev_blocks[getTarget() - 1 ][j].area);
+      Serial.print(' ');
+    }
+    Serial.println(' ');
 
     // Act  ----------------------------
     //      Serial.Serial.print("Writing ");
     //      Serial.Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
+    Serial.print("Writing: ");
+    Serial.println(yaw_servo_pos);
     digitalWrite(LED_PIN, ledState);
     return FORWARD;
   }
@@ -210,7 +214,7 @@ int turnAwayState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
 
-    PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+    PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
     // Serial.println(b.area);
     if (b.area > 0) {
       // Keep turning
@@ -253,7 +257,7 @@ int turnToState() {
       push(prev_blocks[1], PixiBlock(), N);
       push(prev_blocks[2], PixiBlock(), N);
     }
-    PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+    PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
     // Serial.println(b.area);
     if (b.area > 0) {
       bool done = toNextTarget();
@@ -298,7 +302,7 @@ int searchState() {
       push(prev_blocks[1], PixiBlock(), N);
       push(prev_blocks[2], PixiBlock(), N);
     }
-    PixiBlock b = getAverageBlock(prev_blocks[getTarget()], N);
+    PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
     // Serial.println(b.area);
 
     if (b.area > 0) {
@@ -366,12 +370,12 @@ PixiBlock getLargestBlock(uint16_t blocks, int target) {
 
   if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
     // Calculate the output tsteering angle
-    // Serial.print("area: ");
-    // Serial.print(b.area);
-    // Serial.print(" ,x: ");
-    // Serial.print(b.x);
-    // Serial.print(" ,y: ");
-    // Serial.println(b.y);
+    Serial.print("area: ");
+    Serial.print(b.area);
+    Serial.print(" ,x: ");
+    Serial.print(b.x);
+    Serial.print(" ,y: ");
+    Serial.println(b.y);
   }
 
   return b;

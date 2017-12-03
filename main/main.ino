@@ -19,10 +19,9 @@
 #define HALL_EFFECT_PIN 3
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
-#define SERVO_YAW_PIN 6
+#define SERVO_YAW_PIN 5
 #define LED_PIN 7
-#define ESTOP_RELAY_PIN 8
-#define SERVO_PITCH_PIN 9
+#define ESTOP_RELAY_PIN 4
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
@@ -47,7 +46,6 @@ float yaw_servo_pos = 165.0 / 20.0;
 // Define servos and cam
 Pixy pixy;
 Servo servo_yaw;
-Servo servo_pitch;
 
 // An object detected by the pixicam
 struct PixiBlock {
@@ -78,7 +76,6 @@ void setup() { // ----------S----------S----------S----------
   pinMode(ESTOP_RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   servo_yaw.attach(SERVO_YAW_PIN);
-  servo_pitch.attach(SERVO_PITCH_PIN);
   pixy.init();
 
   // Open serial comms
@@ -150,6 +147,7 @@ int forwardState() {
       push(prev_blocks[getTarget() - 1], b_new, N);
       // pixycam targets are 1 indexed so getTarget() is too
       PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
+      Serial.print("Forward: ");
       Serial.println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
@@ -168,19 +166,20 @@ int forwardState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
 
-    // for (int j = 0; j<N; j+=1) {
-
-    //   Serial.print(prev_blocks[getTarget() - 1 ][j].area);
-    //   Serial.print(' ');
-    // }
-    // Serial.println(' ');
+//     for (int j = 0; j<N; j+=1) {
+//
+//       Serial.print(prev_blocks[getTarget() - 1 ][j].area);
+//       Serial.print(' ');
+//     }
+//     Serial.println(' ');
 
     // Act  ----------------------------
     //      Serial.Serial.print("Writing ");
     //      Serial.Serial.print(servo_pos);
     //      Serial.println(" to the servo.");
-    // Serial.print("Writing: ");
-    // Serial.println(yaw_servo_pos);
+//    Serial.print("Writing: ");
+//    Serial.println(yaw_servo_pos);
+    servo_yaw.write(yaw_servo_pos);
     digitalWrite(LED_PIN, ledState);
     return FORWARD;
   }
@@ -215,7 +214,8 @@ int turnAwayState() {
     }
 
     PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-    // Serial.println(b.area);
+    Serial.print("Turning: ");
+    Serial.println(b.area);
     if (b.area > 0) {
       // Keep turning
       servo_yaw.write(40);
@@ -338,14 +338,18 @@ PixiBlock getAverageBlock(PixiBlock arr[], int n) {
   long avg_area = 0;
   int avg_x = 0;
   int avg_y = 0;
+  int num_nonzeros = 0;
   for (int j = 0; j<N; j+=1) {
+    if (arr[j].area > 0) {
+      num_nonzeros += 1;
+    }
     avg_area += arr[j].area;
     avg_x += arr[j].x;
     avg_y += arr[j].y;
   }
-  avg_area = avg_area / n;
-  avg_x = avg_x / n;
-  avg_y = avg_y / n;
+  avg_area = avg_area / num_nonzeros;
+  avg_x = avg_x / num_nonzeros;
+  avg_y = avg_y / num_nonzeros;
   return PixiBlock(avg_area, avg_x, avg_y);
 }
 
@@ -368,15 +372,15 @@ PixiBlock getLargestBlock(uint16_t blocks, int target) {
 
   PixiBlock b = {max_area, max_x, max_y};
 
-  if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
-    // Calculate the output tsteering angle
-    Serial.print("area: ");
-    Serial.print(b.area);
-    Serial.print(" ,x: ");
-    Serial.print(b.x);
-    Serial.print(" ,y: ");
-    Serial.println(b.y);
-  }
+//  if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
+//    // Calculate the output tsteering angle
+//    Serial.print("area: ");
+//    Serial.print(b.area);
+//    Serial.print(" ,x: ");
+//    Serial.print(b.x);
+//    Serial.print(" ,y: ");
+//    Serial.println(b.y);
+//  }
 
   return b;
 }

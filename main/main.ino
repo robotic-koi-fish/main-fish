@@ -81,13 +81,8 @@ void setup() { // ----------S----------S----------S----------
   // Open serial comms
   Serial.begin(9600);
 
-  Serial.println("Initialization finished. Press 'y' to continue.");
-  while (true) {
-    if (gotInput(121)) {
-      Serial.println("MSG: Starting robot");
-      return;
-    }
-  }
+  Serial.println("MSG: Starting robot");
+  digitalWrite(ESTOP_RELAY_PIN, HIGH);
 }
 
 int state = FORWARD;
@@ -262,8 +257,8 @@ int turnToState() {
     if (b.area > 0) {
       bool done = toNextTarget();
       if (done) {
-        Serial.println("TURN_TO: Done!");
-        return STOPPED;
+        Serial.println("TURN_TO: Finished with mission. Restarting");
+        return SEARCH;
       }
       else {
         Serial.println("TURN_TO: Found Buoy. Searching for next buoy.");
@@ -402,8 +397,8 @@ bool gotInput(int asciiVal) {
 
 
 bool isLedOn() {
-  int t = millis() % (2*LED_DELAY);
-  if (t < LED_DELAY) {
+  int t = millis() % (LED_DELAY* getTarget());
+  if (t < (LED_DELAY * getTarget())/2) {
     return true;
   }
   else {

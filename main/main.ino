@@ -19,9 +19,9 @@
 #define HALL_EFFECT_PIN 3
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
-#define SERVO_YAW_PIN 5
-#define LED_PIN 7
-#define ESTOP_RELAY_PIN 4
+#define SERVO_YAW_PIN 6
+#define LED_PIN 8
+#define ESTOP_RELAY_PIN 7
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
@@ -73,6 +73,7 @@ PixiBlock prev_blocks[3][N] = {{}};
 void setup() { // ----------S----------S----------S----------
   // Set pin modes
   pinMode(PUMP_ENABLE_PIN, OUTPUT);
+  pinMode(PUMP_SPEED_PIN, OUTPUT);
   pinMode(ESTOP_RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   servo_yaw.attach(SERVO_YAW_PIN);
@@ -83,6 +84,8 @@ void setup() { // ----------S----------S----------S----------
 
   Serial.println("MSG: Starting robot");
   digitalWrite(ESTOP_RELAY_PIN, HIGH);
+  digitalWrite(PUMP_ENABLE_PIN, HIGH);
+  analogWrite(PUMP_SPEED_PIN, 255);
 }
 
 int state = FORWARD;

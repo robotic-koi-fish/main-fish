@@ -12,16 +12,22 @@
 
 #define LOGIC_BATTERY_PIN A0
 #define MAIN_BATTERY_PIN A1
-#define TEMPERATURE_SENSOR A2
-#define WATER_SENSOR A3
+#define TEMPERATURE_SENSOR_PIN A2
+#define WATER_SENSOR_PIN A3
 
+// RX PIN 0
+// TX PIN 1
 #define RESET_RELAY_PIN 2
 #define HALL_EFFECT_PIN 3
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
 #define SERVO_YAW_PIN 6
-#define LED_PIN 8
 #define ESTOP_RELAY_PIN 7
+#define LED_PIN 8
+// PixyCam 10
+// PixyCam 11
+// PixyCam 12
+// PixyCam 13
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V

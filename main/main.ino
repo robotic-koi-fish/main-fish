@@ -151,8 +151,8 @@ int forwardState() {
       push(prev_blocks[getTarget() - 1], b_new, N);
       // pixycam targets are 1 indexed so getTarget() is too
       PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-      Serial.print("Forward: ");
-      Serial.println(b.area);
+//      Serial.print("Forward: ");
+//      Serial.println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -218,11 +218,11 @@ int turnAwayState() {
     }
 
     PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-    Serial.print("Turning: ");
-    Serial.println(b.area);
+//    Serial.print("Turning: ");
+//    Serial.println(b.area);
     if (b.area > 0) {
       // Keep turning
-      servo_yaw.write(40);
+      servo_yaw.write(60);
       return TURN_AWAY;
     }
     else {
@@ -275,7 +275,7 @@ int turnToState() {
       }
     }
     else {
-      servo_yaw.write(40);
+      servo_yaw.write(60);
       return TURN_TO;
     }
   }

@@ -13,12 +13,12 @@ void setup()  {
   pinMode(ledPin, OUTPUT); // sets the digital pin as output
   pinMode(transistorPin, OUTPUT);
   blinkLED(ledPin, 2, 500); // startup blink
-  delay(1000);
+  delay(100);
   Serial.begin(19200); // start serial at 19200 baud, same as programmer speed
 }
 
 void loop()  {
-  blinkLED(ledPin, 1, 500);
+  blinkLED(ledPin, 1, 1500);
   if ( Serial.available() > 0) { // if there are bytes waiting on the serial port
     char inByte = Serial.read(); // read a byte
     if (inByte == '*') { // if that byte is the desired character

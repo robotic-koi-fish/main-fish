@@ -100,8 +100,6 @@ void setup() { // ----------S----------S----------S----------
 
 int state = FORWARD;
 void loop() { // ----------L----------L----------L----------L----------L
-  XBee.printf("State is %i \n" , state);
-  println("looooooop print!!!!!!!!!!!!111!!!!!!!1 get hyyyyyppeeeeee");
   int nextState;
   if (state == STOPPED) {
     nextState = stoppedState();
@@ -140,7 +138,6 @@ int stoppedState() {
 
 // ----------FORWARD----------FORWARD----------FORWARD
 int forwardState() {
-  println("Entered forward mode");
   // Check for Serial Stop Command
   if (gotInput(121)) {
     println("FORWARD: Recieved Serial Stop Command");
@@ -197,9 +194,9 @@ int forwardState() {
 
 }
 
-// Turns away until the current target is no langer in view
+// Turns away until the current target is no longer in view
 int turnAwayState() {
-  // Wait for XBee verification to start tests
+  // Check for EStop
   if (gotInput(121)) {
     println("TURN_AWAY: Recieved Serial Stop Command");
     return STOPPED;
@@ -211,7 +208,7 @@ int turnAwayState() {
     // Think ---------------------------
     bool ledState = isLedOn();
 
-    // Act -----------------
+    // Act -----------------------------
     digitalWrite(LED_PIN, ledState);
 
     // If we see our block, push value onto block history

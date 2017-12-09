@@ -395,8 +395,8 @@ PixiBlock getLargestBlock(uint16_t blocks, int target) {
 
 
 bool gotInput(int asciiVal) {
-  if (Serial.available()) {
-    int r = Serial.read();
+  if (XBee.available()) {
+    int r = XBee.read();
     if (r == asciiVal) {
       return true;
     } else {

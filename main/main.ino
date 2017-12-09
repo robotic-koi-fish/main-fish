@@ -16,8 +16,8 @@
 #define WATER_SENSOR_PIN A3
 
 //Pin 0,1 is Rx,Tx for hardware serial, cannot use it for anything else
-#define XBEE_RX          2
-#define XBEE_TX          3
+#define XBEE_RX           2
+#define XBEE_TX           3
 #define PUMP_ENABLE_PIN   4
 #define PUMP_SPEED_PIN    5
 #define HALL_EFFECT_PIN   6
@@ -91,14 +91,17 @@ void setup() { // ----------S----------S----------S----------
   Serial.begin(9600);
   XBee.begin(9600);
 
-  println("MSG: Starting robot");
+  println("MSG: flooping robot");
   digitalWrite(ESTOP_RELAY_PIN, HIGH);
   digitalWrite(PUMP_ENABLE_PIN, HIGH);
   analogWrite(PUMP_SPEED_PIN, 255);
+  println("finished setup");
 }
 
 int state = FORWARD;
 void loop() { // ----------L----------L----------L----------L----------L
+  XBee.printf("State is %i \n" , state);
+  println("looooooop print!!!!!!!!!!!!111!!!!!!!1 get hyyyyyppeeeeee");
   int nextState;
   if (state == STOPPED) {
     nextState = stoppedState();
@@ -137,6 +140,7 @@ int stoppedState() {
 
 // ----------FORWARD----------FORWARD----------FORWARD
 int forwardState() {
+  println("Entered forward mode");
   // Check for Serial Stop Command
   if (gotInput(121)) {
     println("FORWARD: Recieved Serial Stop Command");
@@ -157,7 +161,7 @@ int forwardState() {
 //      print("Forward: ");
 //      println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
-        // Calculate the output tsteering angle
+        // Calculate the output steering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
       }
 

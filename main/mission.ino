@@ -3,7 +3,7 @@
 int i = 0;
 int mission[] = {1, 2, 3};
 int getTarget() {
-  return mission[i];
+  return 1;// mission[i];
 }
 
 // returns true if our mission is over

@@ -12,8 +12,8 @@
 
 #define LOGIC_BATTERY_PIN A0
 #define MAIN_BATTERY_PIN A1
-#define TEMPERATURE_SENSOR A2
-#define WATER_SENSOR A3
+#define TEMPERATURE_SENSOR_PIN A2
+#define WATER_SENSOR_PIN A3
 
 //Pin 0 is Rx for hardware serial, cannot use it for anything else
 #define X-BEE_RX          2
@@ -25,7 +25,6 @@
 #define ESTOP_RELAY_PIN   8
 #define SERVO_YAW_PIN     9
 //10-13 go to pixycam
-
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V
@@ -79,6 +78,7 @@ PixiBlock prev_blocks[3][N] = {{}};
 void setup() { // ----------S----------S----------S----------
   // Set pin modes
   pinMode(PUMP_ENABLE_PIN, OUTPUT);
+  pinMode(PUMP_SPEED_PIN, OUTPUT);
   pinMode(ESTOP_RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   servo_yaw.attach(SERVO_YAW_PIN);
@@ -87,13 +87,10 @@ void setup() { // ----------S----------S----------S----------
   // Open serial comms
   Serial.begin(9600);
 
-  Serial.println("Initialization finished. Press 'y' to continue.");
-  while (true) {
-    if (gotInput(121)) {
-      Serial.println("MSG: Starting robot");
-      return;
-    }
-  }
+  Serial.println("MSG: Starting robot");
+  digitalWrite(ESTOP_RELAY_PIN, HIGH);
+  digitalWrite(PUMP_ENABLE_PIN, HIGH);
+  analogWrite(PUMP_SPEED_PIN, 255);
 }
 
 int state = FORWARD;
@@ -153,8 +150,8 @@ int forwardState() {
       push(prev_blocks[getTarget() - 1], b_new, N);
       // pixycam targets are 1 indexed so getTarget() is too
       PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-      Serial.print("Forward: ");
-      Serial.println(b.area);
+//      Serial.print("Forward: ");
+//      Serial.println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -220,11 +217,11 @@ int turnAwayState() {
     }
 
     PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-    Serial.print("Turning: ");
-    Serial.println(b.area);
+//    Serial.print("Turning: ");
+//    Serial.println(b.area);
     if (b.area > 0) {
       // Keep turning
-      servo_yaw.write(40);
+      servo_yaw.write(60);
       return TURN_AWAY;
     }
     else {
@@ -268,8 +265,8 @@ int turnToState() {
     if (b.area > 0) {
       bool done = toNextTarget();
       if (done) {
-        Serial.println("TURN_TO: Done!");
-        return STOPPED;
+        Serial.println("TURN_TO: Finished with mission. Restarting");
+        return SEARCH;
       }
       else {
         Serial.println("TURN_TO: Found Buoy. Searching for next buoy.");
@@ -277,7 +274,7 @@ int turnToState() {
       }
     }
     else {
-      servo_yaw.write(40);
+      servo_yaw.write(60);
       return TURN_TO;
     }
   }
@@ -408,8 +405,8 @@ bool gotInput(int asciiVal) {
 
 
 bool isLedOn() {
-  int t = millis() % (2*LED_DELAY);
-  if (t < LED_DELAY) {
+  int t = millis() % (LED_DELAY* getTarget());
+  if (t < (LED_DELAY * getTarget())/2) {
     return true;
   }
   else {

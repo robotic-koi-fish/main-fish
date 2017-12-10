@@ -6,7 +6,7 @@
 #include<Servo.h>
 #include<SoftwareSerial.h>
 #include<SPI.h>
-#include<Pixy.h>
+#include "Pixy/Pixy.h"
 
 // Define constants
 
@@ -19,7 +19,7 @@
 #define X-BEE_RX  2
 #define X-BEE_TX  3
 #define RESET_RELAY_PIN 2
-#define HALL_EFFECT_PIN 6  //
+#define HALL_EFFECT_PIN 6 
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
 #define SERVO_YAW_PIN 5
@@ -30,6 +30,8 @@
 #define BATT_MIN 0                //6 V
 #define CLOSE_THRESH 3000
 #define LED_DELAY 500
+#define MIN_SERVO 40 //The smallest angle command we will send to the servo
+#define MAX_SERVO 140 //The largest angle command we will send to the servo
 
 // Our States
 #define STOPPED 0

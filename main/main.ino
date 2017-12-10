@@ -16,15 +16,16 @@
 #define WATER_SENSOR A3
 
 //Pin 0 is Rx for hardware serial, cannot use it for anything else
-#define X-BEE_RX  2
-#define X-BEE_TX  3
-#define RESET_RELAY_PIN 2
-#define HALL_EFFECT_PIN 6 
-#define PUMP_ENABLE_PIN 4
-#define PUMP_SPEED_PIN 5
-#define SERVO_YAW_PIN 5
-#define LED_PIN 7
-#define ESTOP_RELAY_PIN 4
+#define X-BEE_RX          2
+#define X-BEE_TX          3
+#define PUMP_ENABLE_PIN   4
+#define PUMP_SPEED_PIN    5
+#define HALL_EFFECT_PIN   6
+#define LED_PIN           7
+#define ESTOP_RELAY_PIN   8
+#define SERVO_YAW_PIN     9
+//10-13 go to pixycam
+
 
 #define BATT_MAX 1000             //9 V
 #define BATT_MIN 0                //6 V

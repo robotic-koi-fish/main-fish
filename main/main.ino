@@ -15,9 +15,9 @@
 #define TEMPERATURE_SENSOR_PIN A2
 #define WATER_SENSOR_PIN A3
 
-//Pin 0 is Rx for hardware serial, cannot use it for anything else
-#define X-BEE_RX          2
-#define X-BEE_TX          3
+//Pin 0,1 is Rx,Tx for hardware serial, cannot use it for anything else
+#define XBEE_RX          2
+#define XBEE_TX          3
 #define PUMP_ENABLE_PIN   4
 #define PUMP_SPEED_PIN    5
 #define HALL_EFFECT_PIN   6
@@ -75,6 +75,9 @@ struct PixiBlock {
 PixiBlock prev_blocks[3][N] = {{}};
 
 
+SoftwareSerial XBee(XBEE_RX, XBEE_TX);
+
+
 void setup() { // ----------S----------S----------S----------
   // Set pin modes
   pinMode(PUMP_ENABLE_PIN, OUTPUT);
@@ -86,8 +89,9 @@ void setup() { // ----------S----------S----------S----------
 
   // Open serial comms
   Serial.begin(9600);
+  XBee.begin(9600);
 
-  Serial.println("MSG: Starting robot");
+  println("MSG: Starting robot");
   digitalWrite(ESTOP_RELAY_PIN, HIGH);
   digitalWrite(PUMP_ENABLE_PIN, HIGH);
   analogWrite(PUMP_SPEED_PIN, 255);
@@ -120,7 +124,7 @@ void loop() { // ----------L----------L----------L----------L----------L
 int stoppedState() {
   // Type y to re-activate
   if (gotInput(121)) {
-    Serial.println("STOPPED: Estop de-activated");
+    println("STOPPED: Estop de-activated");
     digitalWrite(ESTOP_RELAY_PIN, HIGH);
     return FORWARD;
   }
@@ -135,7 +139,7 @@ int stoppedState() {
 int forwardState() {
   // Check for Serial Stop Command
   if (gotInput(121)) {
-    Serial.println("FORWARD: Recieved Serial Stop Command");
+    println("FORWARD: Recieved Serial Stop Command");
     return STOPPED;
   }
   else {
@@ -150,8 +154,8 @@ int forwardState() {
       push(prev_blocks[getTarget() - 1], b_new, N);
       // pixycam targets are 1 indexed so getTarget() is too
       PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-//      Serial.print("Forward: ");
-//      Serial.println(b.area);
+//      print("Forward: ");
+//      println(b.area);
       if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
         // Calculate the output tsteering angle
         yaw_servo_pos = (140.0 / 313.0) * b.x + 20.0;
@@ -159,7 +163,7 @@ int forwardState() {
 
       // If buoy in-cam size passes threshold, get next buoy or mission complete
       if (b.area > CLOSE_THRESH) {
-          Serial.println("FORWARD: Object too close. Starting to turn away.");
+          println("FORWARD: Object too close. Starting to turn away.");
           return TURN_AWAY;
       }
     }
@@ -171,17 +175,17 @@ int forwardState() {
 
 //     for (int j = 0; j<N; j+=1) {
 //
-//       Serial.print(prev_blocks[getTarget() - 1 ][j].area);
-//       Serial.print(' ');
+//       print(prev_blocks[getTarget() - 1 ][j].area);
+//       print(' ');
 //     }
-//     Serial.println(' ');
+//     println(' ');
 
     // Act  ----------------------------
-    //      Serial.Serial.print("Writing ");
-    //      Serial.Serial.print(servo_pos);
-    //      Serial.println(" to the servo.");
-//    Serial.print("Writing: ");
-//    Serial.println(yaw_servo_pos);
+    //      Serial.print("Writing ");
+    //      Serial.print(servo_pos);
+    //      println(" to the servo.");
+//    print("Writing: ");
+//    println(yaw_servo_pos);
     servo_yaw.write(yaw_servo_pos);
     digitalWrite(LED_PIN, ledState);
     return FORWARD;
@@ -193,7 +197,7 @@ int forwardState() {
 int turnAwayState() {
   // Wait for XBee verification to start tests
   if (gotInput(121)) {
-    Serial.println("TURN_AWAY: Recieved Serial Stop Command");
+    println("TURN_AWAY: Recieved Serial Stop Command");
     return STOPPED;
   }
   else {
@@ -217,17 +221,17 @@ int turnAwayState() {
     }
 
     PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-//    Serial.print("Turning: ");
-//    Serial.println(b.area);
+//    print("Turning: ");
+//    println(b.area);
     if (b.area > 0) {
       // Keep turning
       servo_yaw.write(60);
       return TURN_AWAY;
     }
     else {
-      Serial.print("TURN_AWAY: No longer see buoy #");
-      Serial.print(getTarget());
-      Serial.println(". Turn until we see this buoy again.");
+      print("TURN_AWAY: No longer see buoy #");
+      print(getTarget());
+      println(". Turn until we see this buoy again.");
       return TURN_TO;
 
     }
@@ -238,7 +242,7 @@ int turnAwayState() {
 
 int turnToState() {
   if (gotInput(121)) {
-    Serial.println("TURN_TO: Recieved Serial Stop Command");
+    println("TURN_TO: Recieved Serial Stop Command");
     return STOPPED;
   }
   else {
@@ -261,15 +265,15 @@ int turnToState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
     PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-    // Serial.println(b.area);
+    // println(b.area);
     if (b.area > 0) {
       bool done = toNextTarget();
       if (done) {
-        Serial.println("TURN_TO: Finished with mission. Restarting");
+        println("TURN_TO: Finished with mission. Restarting");
         return SEARCH;
       }
       else {
-        Serial.println("TURN_TO: Found Buoy. Searching for next buoy.");
+        println("TURN_TO: Found Buoy. Searching for next buoy.");
         return SEARCH;
       }
     }
@@ -283,7 +287,7 @@ int turnToState() {
 // ----------SEARCH----------SEARCH----------SEARCH
 int searchState() {
   if (gotInput(121)) {
-    Serial.println("SEARCH: Recieved Serial Stop Command");
+    println("SEARCH: Recieved Serial Stop Command");
     return STOPPED;
   }
   else {
@@ -306,12 +310,12 @@ int searchState() {
       push(prev_blocks[2], PixiBlock(), N);
     }
     PixiBlock b = getAverageBlock(prev_blocks[getTarget() - 1], N);
-    // Serial.println(b.area);
+    // println(b.area);
 
     if (b.area > 0) {
-      Serial.print("SEARCH: Found Buoy #");
-      Serial.print(getTarget());
-      Serial.println(". Resuming forward state.");
+      print("SEARCH: Found Buoy #");
+      print(getTarget());
+      println(". Resuming forward state.");
       return FORWARD;
     } else {
       servo_yaw.write(40);
@@ -377,12 +381,12 @@ PixiBlock getLargestBlock(uint16_t blocks, int target) {
 
 //  if ((b.area != 0) && (b.x != 0) && (b.y != 0)) {
 //    // Calculate the output tsteering angle
-//    Serial.print("area: ");
-//    Serial.print(b.area);
-//    Serial.print(" ,x: ");
-//    Serial.print(b.x);
-//    Serial.print(" ,y: ");
-//    Serial.println(b.y);
+//    print("area: ");
+//    print(b.area);
+//    print(" ,x: ");
+//    print(b.x);
+//    print(" ,y: ");
+//    println(b.y);
 //  }
 
   return b;
@@ -413,3 +417,35 @@ bool isLedOn() {
     return false;
   }
 }
+
+//lets us send all messages over both xbee and hardware serial
+void println(String s){
+  XBee.println(s);
+  Serial.println(s);
+}
+
+void println(int s){
+  XBee.println(s);
+  Serial.println(s);
+}
+
+void println(double s){
+  XBee.println(s);
+  Serial.println(s);
+}
+
+void print(String s){
+  XBee.print(s);
+  Serial.print(s);
+}
+
+void print(int s){
+  XBee.print(s);
+  Serial.print(s);
+}
+
+void print(double s){
+  XBee.print(s);
+  Serial.print(s);
+}
+

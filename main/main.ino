@@ -15,8 +15,11 @@
 #define TEMPERATURE_SENSOR A2
 #define WATER_SENSOR A3
 
+//Pin 0 is Rx for hardware serial, cannot use it for anything else
+#define X-BEE_RX  2
+#define X-BEE_TX  3
 #define RESET_RELAY_PIN 2
-#define HALL_EFFECT_PIN 3
+#define HALL_EFFECT_PIN 6  //
 #define PUMP_ENABLE_PIN 4
 #define PUMP_SPEED_PIN 5
 #define SERVO_YAW_PIN 5
